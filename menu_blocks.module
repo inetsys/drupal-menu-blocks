@@ -1,0 +1,176 @@
+<?php
+
+function menu_blocks_permission(){
+	return array(
+		'administer menu blocks' => array(
+			'title' => t('Administer menu blocks')
+		)
+	);
+}
+
+function menu_blocks_menu() {
+	$items = array();
+
+	$items['admin/structure/menu/blocks'] = array(
+		'title' => 'Blocks',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('menu_blocks_settings_page'),
+		'access arguments' => array('administer menu blocks'),
+		'type' => MENU_NORMAL_ITEM,
+		'file' => 'menu_blocks.admin.inc'
+	);
+
+	return $items;
+}
+
+function menu_blocks_theme() {
+	return array(
+		'menu_block' => array(
+			'variables' => array(
+				'menu' => '',
+				'max_levels' => 0,
+				'first_level' => 1,
+				'html_id' => '',
+				'html_classes' => array(),
+				'title' => '',
+				'block' => null,
+			),
+			'template' => 'menu_block',
+			'path' => drupal_get_path('module', 'menu_blocks').'/templates',
+		),
+		'menu_block_item' => array(
+			'variables' => array(
+				'item' => array()
+			),
+			'template' => 'menu_block_item',
+			'path' => drupal_get_path('module', 'menu_blocks').'/templates',
+		)
+	);
+}
+
+function menu_blocks_block_info() {
+	$blocks = array();
+
+	for($i=1; $i <= variable_get('menu_blocks_count', 5); $i++){
+		$blocks['menu_blocks_'.$i] = array(
+			'info' => t('Menu block').': '.variable_get('menu_blocks_description_'.$i, t('Block').' '.$i),
+			'cache' => DRUPAL_NO_CACHE,
+		);
+	}
+
+	return $blocks;
+}
+
+function menu_blocks_block_configure($delta = ''){
+	$form = array();
+
+	for($i=1; $i <= variable_get('menu_blocks_count', 5); $i++){
+		if($delta == 'menu_blocks_'.$i){
+			$form['menu_blocks_id_'.$i] = array(
+				'#title' => t('ID'),
+				'#type' => 'textfield',
+				'#default_value' => variable_get('menu_blocks_id_'.$i, ''),
+			);
+			$form['menu_blocks_description_'.$i] = array(
+				'#title' => t('Description'),
+				'#type' => 'textfield',
+				'#default_value' => variable_get('menu_blocks_description_'.$i, 'Bloque '.$i),
+				'#required' => true
+			);
+			$form['menu_blocks_first_level_'.$i] = array(
+				'#title' => t('First shown level'),
+				'#type' => 'select',
+				'#options' => array(
+					'1' => '1',
+					'2' => '2',
+					'3' => '3',
+					'4' => '4',
+					'5' => '5'
+				),
+				'#default_value' => variable_get('menu_blocks_first_level_'.$i, '1')
+			);
+			$form['menu_blocks_max_levels_'.$i] = array(
+				'#title' => t('Shown levels'),
+				'#type' => 'select',
+				'#options' => array(
+					'0' => t('All'),
+					'1' => '1',
+					'2' => '2',
+					'3' => '3',
+					'4' => '4',
+					'5' => '5'
+				),
+				'#default_value' => variable_get('menu_blocks_max_levels_'.$i, '0')
+			);
+			$list_menu = menu_load_all();
+			$options = array();
+			foreach($list_menu as $menu){
+				$options[$menu['menu_name']] = $menu['title'];
+			}
+			$form['menu_blocks_use_menu_'.$i] = array(
+				'#title' => t('Menu'),
+				'#type' => 'select',
+				'#options' => $options,
+				'#default_value' => variable_get('menu_blocks_use_menu_'.$i, ''),
+				'#required' => true
+			);
+		}
+	}
+
+	return $form;
+}
+
+function menu_blocks_block_save($delta = '', $edit = array()){
+	for($i=1; $i <= variable_get('menu_blocks_count', 5); $i++){
+		if($delta == 'menu_blocks_'.$i){
+			if(isset($edit['menu_blocks_description_'.$i])){
+				variable_set('menu_blocks_description_'.$i, $edit['menu_blocks_description_'.$i]);
+			}
+			if(isset($edit['menu_blocks_id_'.$i])){
+				variable_set('menu_blocks_id_'.$i, $edit['menu_blocks_id_'.$i]);
+			}
+			if(isset($edit['menu_blocks_first_level_'.$i])){
+				variable_set('menu_blocks_first_level_'.$i, $edit['menu_blocks_first_level_'.$i]);
+			}
+			if(isset($edit['menu_blocks_max_levels_'.$i])){
+				variable_set('menu_blocks_max_levels_'.$i, $edit['menu_blocks_max_levels_'.$i]);
+			}
+			if(isset($edit['menu_blocks_use_menu_'.$i])){
+				variable_set('menu_blocks_use_menu_'.$i, $edit['menu_blocks_use_menu_'.$i]);
+			}
+		}
+	}
+}
+
+function menu_blocks_block_view($delta = ''){
+	module_load_include('inc', 'menu_blocks');
+	$block = array();
+
+	for($i=1; $i <= variable_get('menu_blocks_count', 5); $i++){
+		if($delta == 'menu_blocks_'.$i){
+			$settings = block_load('menu_blocks', $delta);
+
+			$max_levels = variable_get('menu_blocks_max_levels_'.$i, 0);
+			$first_level = variable_get('menu_blocks_first_level_'.$i, 1);
+			$id = variable_get('menu_blocks_id_'.$i, '');
+			$title = !isset($settings->title) || $settings->title == '<none>' ? '' : $settings->title;
+
+			$menu = _menu_blocks_get_menu_tree(variable_get('menu_blocks_use_menu_'.$i, 'main-menu'), $first_level, $max_levels);
+
+			$block['subject'] = '';
+			$block['content'] = theme('menu_block', array('menu' => $menu, 'title' => $title, 'html_id' => $id, 'html_classes' => array(), 'block' => $settings));
+			// $block['content'] = '<pre>'.print_r($menu, true).'</pre>';
+		}
+	}
+
+	return $block;
+}
+
+function menu_blocks_preprocess_block(&$vars, $hook){
+	for($i=1; $i <= variable_get('menu_blocks_count', 5); $i++){
+		$delta = $vars['block']->delta;
+		if($delta == 'menu_blocks_'.$i){
+			$vars['block']->subject = '';
+		}
+	}
+}
