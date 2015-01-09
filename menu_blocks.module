@@ -66,8 +66,14 @@ function menu_blocks_block_configure($delta = ''){
 
 	for($i=1; $i <= variable_get('menu_blocks_count', 5); $i++){
 		if($delta == 'menu_blocks_'.$i){
+			$form['menu_blocks_classes_'.$i] = array(
+				'#title' => t('Html classes'),
+				'#type' => 'textarea',
+				'#rows' => 3,
+				'#default_value' => variable_get('menu_blocks_classes_'.$i, ''),
+			);
 			$form['menu_blocks_id_'.$i] = array(
-				'#title' => t('ID'),
+				'#title' => t('Html id'),
 				'#type' => 'textfield',
 				'#default_value' => variable_get('menu_blocks_id_'.$i, ''),
 			);
@@ -126,8 +132,11 @@ function menu_blocks_block_save($delta = '', $edit = array()){
 			if(isset($edit['menu_blocks_description_'.$i])){
 				variable_set('menu_blocks_description_'.$i, $edit['menu_blocks_description_'.$i]);
 			}
+			if(isset($edit['menu_blocks_classes_'.$i])){
+				variable_set('menu_blocks_classes_'.$i, trim($edit['menu_blocks_classes_'.$i]));
+			}
 			if(isset($edit['menu_blocks_id_'.$i])){
-				variable_set('menu_blocks_id_'.$i, $edit['menu_blocks_id_'.$i]);
+				variable_set('menu_blocks_id_'.$i, trim($edit['menu_blocks_id_'.$i]));
 			}
 			if(isset($edit['menu_blocks_first_level_'.$i])){
 				variable_set('menu_blocks_first_level_'.$i, $edit['menu_blocks_first_level_'.$i]);
@@ -153,13 +162,13 @@ function menu_blocks_block_view($delta = ''){
 			$max_levels = variable_get('menu_blocks_max_levels_'.$i, 0);
 			$first_level = variable_get('menu_blocks_first_level_'.$i, 1);
 			$id = variable_get('menu_blocks_id_'.$i, '');
+			$classes = array_filter(array_map('trim', explode("\n", variable_get('menu_blocks_classes_'.$i, ''))));
 			$title = !isset($settings->title) || $settings->title == '<none>' ? '' : $settings->title;
 
 			$menu = _menu_blocks_get_menu_tree(variable_get('menu_blocks_use_menu_'.$i, 'main-menu'), $first_level, $max_levels);
 
 			$block['subject'] = '';
-			$block['content'] = theme('menu_block', array('menu' => $menu, 'title' => $title, 'html_id' => $id, 'html_classes' => array(), 'block' => $settings));
-			// $block['content'] = '<pre>'.print_r($menu, true).'</pre>';
+			$block['content'] = theme('menu_block', array('menu' => $menu, 'title' => $title, 'html_id' => $id, 'html_classes' => $classes, 'block' => $settings));
 		}
 	}
 
