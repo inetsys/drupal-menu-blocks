@@ -13,7 +13,7 @@ function _menu_blocks_in_active_trail($path){
 		}
 	}
 
-	return in_array($path, $active_paths);
+	return !empty($path) && $path != '<front>' && in_array($path, $active_paths);
 }
 
 
@@ -45,6 +45,7 @@ function _menu_blocks_get_link_below($item, $current_level, $max_levels = 0){
 			$item = array(
 				'link' => $level['link']['link_path'],
 				'label' => $level['link']['link_title'],
+				'options' => $level['link']['options'],
 				'level' => $current_level,
 				'active_trail' => _menu_blocks_in_active_trail($level['link']['link_path']),
 			);
@@ -66,6 +67,7 @@ function _menu_blocks_get_menu_tree($menu_name, $first_level = 1, $max_levels = 
 		foreach($tree as $level){
 			$item = array(
 				'link' => $level['link']['link_path'],
+				'options' => $level['link']['options'],
 				'label' => $level['link']['link_title'],
 				'level' => 1,
 				'active_trail' => _menu_blocks_in_active_trail($level['link']['link_path']),
@@ -82,6 +84,7 @@ function _menu_blocks_get_menu_tree($menu_name, $first_level = 1, $max_levels = 
 			foreach($active_element['below'] as $child){
 				$item = array(
 					'link' => $child['link']['link_path'],
+					'options' => $child['link']['options'],
 					'label' => $child['link']['link_title'],
 					'level' => $level,
 					'active_trail' => _menu_blocks_in_active_trail($child['link']['link_path']),

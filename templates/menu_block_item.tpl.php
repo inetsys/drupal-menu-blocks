@@ -1,4 +1,4 @@
-<?php print l($item['label'], $item['link']); ?>
+<?php print l($item['label'], $item['link'], $item['options']); ?>
 <?php if(isset($item['children']) && !empty($item['children'])) : ?>
 	<ul>
 		<?php foreach($item['children'] as $child) : ?>
