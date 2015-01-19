@@ -65,6 +65,9 @@ function _menu_blocks_get_menu_tree($menu_name, $first_level = 1, $max_levels = 
 
 	if($first_level == 1){
 		foreach($tree as $level){
+			if($level['link']['hidden']){
+				continue;
+			}
 			$item = array(
 				'link' => $level['link']['link_path'],
 				'options' => $level['link']['options'],
@@ -82,6 +85,9 @@ function _menu_blocks_get_menu_tree($menu_name, $first_level = 1, $max_levels = 
 		if(isset($active_element['below']) && !empty($active_element['below'])){
 			$level = 1;
 			foreach($active_element['below'] as $child){
+				if($child['link']['hidden']){
+					continue;
+				}
 				$item = array(
 					'link' => $child['link']['link_path'],
 					'options' => $child['link']['options'],
